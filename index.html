@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基本情報技術者 過去問演習</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .filter-section { background: #f8f9fa; border: 1px solid #ddd; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; text-align: left; }
+    .filter-section h4 { margin-top: 0; color: var(--primary-color); margin-bottom: 0.8rem; border-bottom: 1px solid #ccc; padding-bottom: 0.3rem; }
+    .category-group { margin-bottom: 0.8rem; }
+    .category-group strong { display: block; margin-bottom: 0.3rem; font-size: 0.95rem; color: #555; }
+    .page-inputs input { width: 60px; padding: 4px; margin: 0 4px; border: 1px solid #ccc; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="resize-bar">
+    <select id="appWidthSelect" style="border:1px solid #ccc; border-radius:4px; padding:4px; font-size:0.9rem;">
+      <option value="600px">標準幅</option>
+      <option value="800px" selected>広め（PC用）</option>
+      <option value="1200px">最大</option>
+      <option value="100%">全画面</option>
+    </select>
+    <div style="display:flex; align-items:center; gap:5px; border-left:1px solid #ccc; padding-left:10px;">
+      <span style="font-size: 0.8rem; color:#666;">A</span>
+      <input type="range" id="uiScaleSlider" min="0.7" max="1.5" step="0.1" value="1.0" style="width: 80px;">
+      <span style="font-size: 1.2rem; color:#333; font-weight:bold;">A</span>
+    </div>
+  </div>
+
+  <header class="app-header">
+    <h1>FE 過去問演習</h1>
+    <div id="auth-container">
+      <button id="login-btn" class="btn">Googleでログイン</button>
+      <div id="user-info" class="hidden">
+        <span id="user-name" style="margin-right:1rem; font-weight:bold;"></span>
+        <button id="logout-btn" class="btn btn-secondary" style="padding:0.4rem 0.8rem; font-size:0.9rem;">ログアウト</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="loading-screen" class="card" style="text-align: center;">
+      <h3>問題データを読み込み中...</h3>
+      <p>少々お待ちください</p>
+    </div>
+
+    <div id="setup-screen" class="card hidden">
+      <h3 style="margin-top:0; border-bottom:2px solid var(--primary-color); padding-bottom:0.5rem; text-align: center;">出題設定</h3>
+      <p id="total-questions-info" style="font-weight:bold; color:#555; text-align: center;">総問題数: - 問</p>
+      
+      <!-- 1. 試験回フィルター -->
+      <div style="margin: 1.5rem 0; text-align: left;">
+        <label style="font-weight:bold; color:var(--primary-color);">
+          <input type="checkbox" id="selectAllSessions" checked style="transform: scale(1.2); margin-right:5px;"> すべての試験回を出題
+        </label>
+        <div id="session-checkboxes" class="checkbox-group" style="margin-top:10px;"></div>
+      </div>
+      
+      <!-- 2. 詳細フィルター（カテゴリ・ページ・キーワード） -->
+      <div class="filter-section">
+        <h4>詳細フィルター</h4>
+        
+        <div style="margin-bottom: 1rem;">
+          <label style="font-weight:bold;">キーワード検索: 
+            <input type="text" id="keywordInput" placeholder="例: アジャイル" style="width: 200px; padding: 4px; margin-left: 8px;">
+          </label>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <strong style="display:block; margin-bottom:4px;">出題範囲（カテゴリ）:</strong>
+          <div class="category-group">
+            <strong>テクノロジ系</strong>
+            <label><input type="checkbox" class="cat-check" value="基礎理論" checked> 基礎理論</label>
+            <label><input type="checkbox" class="cat-check" value="コンピュータシステム" checked> コンピュータシステム</label>
+            <label><input type="checkbox" class="cat-check" value="技術要素" checked> 技術要素</label>
+            <label><input type="checkbox" class="cat-check" value="開発技術" checked> 開発技術</label>
+          </div>
+          <div class="category-group">
+            <strong>マネジメント系</strong>
+            <label><input type="checkbox" class="cat-check" value="プロジェクトマネジメント" checked> プロジェクトマネジメント</label>
+            <label><input type="checkbox" class="cat-check" value="サービスマネジメント" checked> サービスマネジメント</label>
+          </div>
+          <div class="category-group">
+            <strong>ストラテジ系</strong>
+            <label><input type="checkbox" class="cat-check" value="システム戦略" checked> システム戦略</label>
+            <label><input type="checkbox" class="cat-check" value="経営戦略" checked> 経営戦略</label>
+            <label><input type="checkbox" class="cat-check" value="企業と法務" checked> 企業と法務</label>
+          </div>
+        </div>
+
+        <div class="page-inputs">
+          <strong style="display:block; margin-bottom:4px;">教科書ページ:</strong>
+          <div style="margin-bottom: 4px;">本冊: <input type="number" id="pageMainMin"> 〜 <input type="number" id="pageMainMax"> ページ</div>
+          <div>別冊: <input type="number" id="pageSubMin"> 〜 <input type="number" id="pageSubMax"> ページ</div>
+        </div>
+      </div>
+      
+      <hr>
+      <div style="margin: 1.5rem 0; text-align: center;">
+        <h4 style="margin-top:0; margin-bottom: 0.5rem; color: var(--primary-color);">出題形式</h4>
+        <div class="options-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+          <label><input type="radio" name="displayMode" value="single" checked style="transform: scale(1.2); margin-right:5px;"> 一問一答</label>
+          <label><input type="radio" name="displayMode" value="chunk10" style="transform: scale(1.2); margin-right:5px;"> 10問ずつ</label>
+          <label><input type="radio" name="displayMode" value="all" style="transform: scale(1.2); margin-right:5px;"> 全て表示</label>
+        </div>
+      </div>
+
+      <hr>
+      <div class="options-grid" style="text-align: left;">
+        <label><input type="checkbox" id="randomOrderCheck" style="transform: scale(1.2); margin-right:5px;"> 出題順をランダムにする</label>
+        <label><input type="checkbox" id="shuffleOptionsCheck" style="transform: scale(1.2); margin-right:5px;" checked> 選択肢をシャッフルする</label>
+        <label style="color: #28a745; font-weight: bold;"><input type="checkbox" id="reviewModeCheck" style="transform: scale(1.2); margin-right:5px;"> 解答確認モード（正解表示）</label>
+        
+        <label id="excludeCheckedLabel" style="color:#999;">
+          <input type="checkbox" id="excludeCheckedCheck" style="transform: scale(1.2); margin-right:5px;" checked disabled> 
+          チェック(✔)済を除外 <span class="login-alert" style="font-size:0.8rem; color:#e74c3c;">(要ログイン)</span>
+        </label>
+        
+        <label id="bookmarkOnlyLabel" style="color:#999;">
+          <input type="checkbox" id="bookmarkOnlyCheck" style="transform: scale(1.2); margin-right:5px;" disabled> 
+          ブックマーク(★)のみ <span class="login-alert" style="font-size:0.8rem; color:#e74c3c;">(要ログイン)</span>
+        </label>
+      </div>
+      
+      <div id="setup-error" style="color:red; font-weight:bold; margin-top:15px; text-align:center;" class="hidden"></div>
+      
+      <div style="text-align:center; margin-top:2rem;">
+        <button id="start-practice-btn" class="btn" style="font-size: 1.2rem; padding: 1rem 3rem;">演習を開始</button>
+      </div>
+    </div>
+
+    <div id="practice-screen" class="hidden">
+      <div id="question-container"></div>
+      <div style="text-align: center; margin-top: 1.5rem; margin-bottom: 3rem;">
+        <button id="prev-btn" class="btn btn-secondary">前のページへ</button>
+        <button id="back-to-setup-btn" class="btn btn-secondary" style="background-color: #f39c12;">設定に戻る</button>
+        <button id="next-btn" class="btn">次のページへ</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
